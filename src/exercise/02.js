@@ -3,8 +3,12 @@
 
 import * as React from 'react'
 
+const getInitialState = (initialName) => {
+  return window.localStorage.getItem('name') ?? initialName;
+}
+
 function Greeting({ initialName = '' }) {
-  const [name, setName] = React.useState(window.localStorage.getItem('name') ?? initialName)
+  const [name, setName] = React.useState(() => getInitialState(initialName))
 
   React.useEffect(() => {
     window.localStorage.setItem('name', name)
