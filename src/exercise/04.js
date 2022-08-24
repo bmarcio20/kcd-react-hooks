@@ -2,20 +2,16 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import { useLocalStorageState } from '../utils'
 
 const LOCAL_STORAGE_KEY = 'squares';
-
 const getInitialState = () => JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || Array(9).fill(null);
 
 function Board() {
-  const [squares, setSquares] = React.useState(() => getInitialState())
+  const [squares, setSquares] = useLocalStorageState(LOCAL_STORAGE_KEY, () => getInitialState())
   const nextValue = calculateNextValue(squares);
   const winner = calculateWinner(squares);
   const status = calculateStatus(winner, squares, nextValue);
-
-  React.useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(squares))
-  }, [squares])
 
   // This is the function your square click handler will call. `square` should
   // be an index. So if they click the center square, this will be `4`.
