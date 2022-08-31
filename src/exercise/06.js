@@ -2,44 +2,52 @@
 // http://localhost:3000/isolated/exercise/06.js
 
 import * as React from 'react'
-import { fetchPokemon, PokemonInfoFallback, PokemonDataView, PokemonForm } from '../pokemon'
+import {
+  fetchPokemon,
+  PokemonInfoFallback,
+  PokemonDataView,
+  PokemonForm,
+} from '../pokemon'
 
 function PokemonInfo({ pokemonName }) {
-  const [pokemon, setPokemon] = React.useState(null);
-  const [error, setError] = React.useState(null);
-  const [status, setStatus] = React.useState('idle');
-  const isPending = status === 'pending';
-  const isResolved = status === 'resolved';
-  const isIdle = status === 'idle';
-  const isRejected = status === 'rejected';
+  const [state, setState] = React.useState({
+    pokemon: null,
+    error: null,
+    status: 'idle',
+  })
+  const { pokemon, error, status } = state
+  const isPending = status === 'pending'
+  const isResolved = status === 'resolved'
+  const isIdle = status === 'idle'
+  const isRejected = status === 'rejected'
 
   React.useEffect(() => {
-    (async () => {
+    ; (async () => {
       if (!pokemonName) {
-        return;
+        return
       }
-      setPokemon(null);
-      setStatus('pending')
+      setState({ status: 'pending' })
       try {
-        const newPokemon = await fetchPokemon(pokemonName);
-        setPokemon(newPokemon);
-        setStatus('resolved')
+        const newPokemon = await fetchPokemon(pokemonName)
+        setState({ status: 'resolved', pokemon: newPokemon })
       } catch (error) {
-        setError(error);
-        setStatus('rejected')
+        setState({ status: 'rejected', error })
       }
     })()
-  }, [pokemonName]);
+  }, [pokemonName])
 
   if (isRejected) {
-    return (<div role="alert">
-      There was an error: <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
-    </div>);
+    return (
+      <div role="alert">
+        There was an error:{' '}
+        <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+      </div>
+    )
   } else if (isIdle) {
     return 'Submit a pokemon'
   } else if (isPending) {
     return <PokemonInfoFallback name={pokemonName} />
-  } else if(isResolved) {
+  } else if (isResolved) {
     return <PokemonDataView pokemon={pokemon} />
   }
 }
