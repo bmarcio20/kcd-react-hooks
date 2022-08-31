@@ -7,6 +7,11 @@ import { fetchPokemon, PokemonInfoFallback, PokemonDataView, PokemonForm } from 
 function PokemonInfo({ pokemonName }) {
   const [pokemon, setPokemon] = React.useState(null);
   const [error, setError] = React.useState(null);
+  const [status, setStatus] = React.useState('idle');
+  const isPending = status === 'pending';
+  const isResolved = status === 'resolved';
+  const isIdle = status === 'idle';
+  const isRejected = status === 'rejected';
 
   React.useEffect(() => {
     (async () => {
@@ -14,24 +19,27 @@ function PokemonInfo({ pokemonName }) {
         return;
       }
       setPokemon(null);
+      setStatus('pending')
       try {
         const newPokemon = await fetchPokemon(pokemonName);
         setPokemon(newPokemon);
+        setStatus('resolved')
       } catch (error) {
         setError(error);
+        setStatus('rejected')
       }
     })()
   }, [pokemonName]);
 
-  if (error) {
+  if (isRejected) {
     return (<div role="alert">
       There was an error: <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
     </div>);
-  } else if (!pokemonName) {
+  } else if (isIdle) {
     return 'Submit a pokemon'
-  } else if (!pokemon) {
+  } else if (isPending) {
     return <PokemonInfoFallback name={pokemonName} />
-  } else {
+  } else if(isResolved) {
     return <PokemonDataView pokemon={pokemon} />
   }
 }
