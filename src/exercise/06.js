@@ -9,6 +9,30 @@ import {
   PokemonForm,
 } from '../pokemon'
 
+class ErrorBoundary extends React.Component {
+  state = {
+    error: null,
+  }
+
+  static getDerivedStateFromError (error) {
+    return {error}
+  }
+  render() {
+    const {error} = this.state;
+
+    return error ? <this.props.FallbackComponent error={error}/> : this.props.children;
+  }
+}
+
+function ErrorComponent({error}){
+  return (
+    <div role="alert">
+      There was a huge mistake (or error):{' '}
+      <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+    </div>
+  )
+}
+
 function PokemonInfo({ pokemonName }) {
   const [state, setState] = React.useState({
     pokemon: null,
@@ -37,12 +61,7 @@ function PokemonInfo({ pokemonName }) {
   }, [pokemonName])
 
   if (isRejected) {
-    return (
-      <div role="alert">
-        There was an error:{' '}
-        <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
-      </div>
-    )
+    throw new Error('This pokemon will not be displayed');
   } else if (isIdle) {
     return 'Submit a pokemon'
   } else if (isPending) {
@@ -64,7 +83,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
+        <ErrorBoundary FallbackComponent={ErrorComponent}>
         <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
