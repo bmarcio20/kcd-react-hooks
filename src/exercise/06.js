@@ -2,31 +2,60 @@
 // http://localhost:3000/isolated/exercise/06.js
 
 import * as React from 'react'
-// 🐨 you'll want the following additional things from '../pokemon':
-// fetchPokemon: the function we call to get the pokemon info
-// PokemonInfoFallback: the thing we show while we're loading the pokemon info
-// PokemonDataView: the stuff we use to display the pokemon info
-import {PokemonForm} from '../pokemon'
+import { ErrorBoundary } from 'react-error-boundary'
+import {
+  fetchPokemon,
+  PokemonInfoFallback,
+  PokemonDataView,
+  PokemonForm,
+} from '../pokemon'
 
-function PokemonInfo({pokemonName}) {
-  // 🐨 Have state for the pokemon (null)
-  // 🐨 use React.useEffect where the callback should be called whenever the
-  // pokemon name changes.
-  // 💰 DON'T FORGET THE DEPENDENCIES ARRAY!
-  // 💰 if the pokemonName is falsy (an empty string) then don't bother making the request (exit early).
-  // 🐨 before calling `fetchPokemon`, clear the current pokemon state by setting it to null.
-  // (This is to enable the loading state when switching between different pokemon.)
-  // 💰 Use the `fetchPokemon` function to fetch a pokemon by its name:
-  //   fetchPokemon('Pikachu').then(
-  //     pokemonData => {/* update all the state here */},
-  //   )
-  // 🐨 return the following things based on the `pokemon` state and `pokemonName` prop:
-  //   1. no pokemonName: 'Submit a pokemon'
-  //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
-  //   3. pokemon: <PokemonDataView pokemon={pokemon} />
+function ErrorComponent({ error, resetErrorBoundary }) {
+  return (
+    <div role="alert">
+      There was a huge mistake (or error):{' '}
+      <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  )
+}
 
-  // 💣 remove this
-  return 'TODO'
+function PokemonInfo({ pokemonName }) {
+  const [state, setState] = React.useState({
+    pokemon: null,
+    error: null,
+    status: 'idle',
+  })
+  const { pokemon, error, status } = state
+  const isPending = status === 'pending'
+  const isResolved = status === 'resolved'
+  const isIdle = status === 'idle'
+  const isRejected = status === 'rejected'
+
+  React.useEffect(() => {
+    ; (async () => {
+      if (!pokemonName) {
+        return
+      }
+      setState({ status: 'pending' })
+      try {
+        const newPokemon = await fetchPokemon(pokemonName)
+        setState({ status: 'resolved', pokemon: newPokemon })
+      } catch (error) {
+        setState({ status: 'rejected', error })
+      }
+    })()
+  }, [pokemonName])
+
+  if (isRejected) {
+    throw new Error('This pokemon will not be displayed')
+  } else if (isIdle) {
+    return 'Submit a pokemon'
+  } else if (isPending) {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (isResolved) {
+    return <PokemonDataView pokemon={pokemon} />
+  }
 }
 
 function App() {
@@ -36,12 +65,22 @@ function App() {
     setPokemonName(newPokemonName)
   }
 
+  function handleReset() {
+    setPokemonName('')
+  }
+
   return (
     <div className="pokemon-info-app">
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBoundary
+          FallbackComponent={ErrorComponent}
+          onReset={handleReset}
+          resetKeys={[pokemonName]}
+        >
+          <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
