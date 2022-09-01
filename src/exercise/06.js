@@ -10,11 +10,12 @@ import {
   PokemonForm,
 } from '../pokemon'
 
-function ErrorComponent({error}){
+function ErrorComponent({error, resetErrorBoundary}){
   return (
     <div role="alert">
       There was a huge mistake (or error):{' '}
       <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
     </div>
   )
 }
@@ -64,12 +65,16 @@ function App() {
     setPokemonName(newPokemonName)
   }
 
+  function handleReset() {
+    setPokemonName('');
+  }
+
   return (
     <div className="pokemon-info-app">
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary FallbackComponent={ErrorComponent} key={pokemonName}>
+        <ErrorBoundary FallbackComponent={ErrorComponent} onReset={handleReset}>
         <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
