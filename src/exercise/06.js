@@ -2,7 +2,7 @@
 // http://localhost:3000/isolated/exercise/06.js
 
 import * as React from 'react'
-import {ErrorBoundary} from 'react-error-boundary'
+import { ErrorBoundary } from 'react-error-boundary'
 import {
   fetchPokemon,
   PokemonInfoFallback,
@@ -10,7 +10,7 @@ import {
   PokemonForm,
 } from '../pokemon'
 
-function ErrorComponent({error, resetErrorBoundary}){
+function ErrorComponent({ error, resetErrorBoundary }) {
   return (
     <div role="alert">
       There was a huge mistake (or error):{' '}
@@ -48,7 +48,7 @@ function PokemonInfo({ pokemonName }) {
   }, [pokemonName])
 
   if (isRejected) {
-    throw new Error('This pokemon will not be displayed');
+    throw new Error('This pokemon will not be displayed')
   } else if (isIdle) {
     return 'Submit a pokemon'
   } else if (isPending) {
@@ -66,7 +66,7 @@ function App() {
   }
 
   function handleReset() {
-    setPokemonName('');
+    setPokemonName('')
   }
 
   return (
@@ -74,8 +74,12 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary FallbackComponent={ErrorComponent} onReset={handleReset}>
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBoundary
+          FallbackComponent={ErrorComponent}
+          onReset={handleReset}
+          resetKeys={[pokemonName]}
+        >
+          <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
     </div>
